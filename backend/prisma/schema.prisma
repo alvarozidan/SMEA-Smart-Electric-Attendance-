@@ -1,0 +1,160 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  admin
+  guru
+}
+
+enum AttendanceStatus {
+  hadir
+  terlambat
+  tidak_hadir
+  izin
+  sakit
+}
+
+enum AttendanceMethod {
+  rfid
+  fingerprint
+  manual
+}
+
+enum DeviceStatus {
+  online
+  offline
+}
+
+enum LogMethod {
+  rfid
+  fingerprint
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  name          String    
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  role          UserRole
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  classes       Class[]       @relation("HomeroomTeacher")
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model Class {
+  id                  Int      @id @default(autoincrement())
+  name                String   
+  homeroomTeacherId   Int?     @map("homeroom_teacher_id")
+  checkInStart        DateTime @map("check_in_start") @db.Time()
+  checkInDeadline     DateTime @map("check_in_deadline") @db.Time()
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  homeroomTeacher User? @relation("HomeroomTeacher", fields: [homeroomTeacherId], references: [id])
+  students        Student[]
+  attendance      Attendance[]
+
+  @@map("classes")
+}
+
+model Student {
+  id        Int       @id @default(autoincrement())
+  nis       String    @unique
+  name      String
+  classId   Int?      @map("class_id")
+  isDeleted Boolean   @default(false) @map("is_deleted")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  class       Class?              @relation(fields: [classId], references: [id])
+  credential  StudentCredential?
+  attendance  Attendance[]
+  logs        Log[]
+
+  @@map("students")
+}
+
+model StudentCredential {
+  id                Int           @id @default(autoincrement())
+  studentId         Int           @unique @map("student_id")
+  rfidUid           String?       @unique @map("rfid_uid")
+  fingerprintIndex  Int?          @unique @map("fingerprint_index")
+  registeredAt      DateTime      @default(now()) @map("registered_at")
+
+  student           Student @relation(fields: [studentId], references: [id])
+
+  @@map("student_credentials")
+}
+
+model Attendance {
+  id              Int               @id @default(autoincrement())
+  studentId       Int               @map("student_id")
+  classId         Int               @map("class_id")
+  date            DateTime          @db.Date
+  checkInTime     DateTime?         @map("check_in_time")
+  status          AttendanceStatus
+  method          AttendanceMethod?
+  createdAt       DateTime          @default(now()) @map("created_at")
+
+  student         Student           @relation(fields: [studentId], references: [id])
+  class           Class             @relation(fields: [classId], references: [id])
+
+  @@unique([studentId, date])
+  @@map("attendance")
+}
+
+model Device {
+  id                Int             @id @default(autoincrement())
+  deviceCode        String          @unique @map("device_code")
+  location          String?       
+  status            DeviceStatus    @default(offline)
+  registrationMode  Boolean         @default(false) @map("registration_mode")
+  lastSeenAt        DateTime?       @map("last_seen_at")
+  firmwareVersion   String?         @map("firmware_version")
+
+  logs              Log[]
+
+  @@map("devices")
+}
+
+model Log {
+  id                Int             @id @default(autoincrement())
+  eventType         String          @map("event_type")
+  method            LogMethod?
+  deviceId          Int?            @map("device_id")
+  studentId         Int?            @map("student_id")
+  payload           Json
+  createdAt         DateTime        @default(now()) @map("created_at")
+
+  device            Device?         @relation(fields: [deviceId], references: [id])
+  student            Student?       @relation(fields: [studentId], references: [id])
+
+  @@map("logs")
+}
+
+model RefreshToken {
+  id                Int             @id @default(autoincrement())
+  userId            Int             @map("user_id")
+  tokenHash         String          @map("token_hash")
+  expiresAt         DateTime        @map("expires_at")
+  revokedAt         DateTime?       @map("revoked_at")
+  createdAt         DateTime        @default(now()) @map("created_at")
+
+  user              User            @relation(fields: [userId], references: [id])
+
+  @@map("refresh_tokens")
+}

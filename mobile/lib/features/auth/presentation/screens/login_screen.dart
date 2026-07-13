@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile/features/auth/presentation/providers/auth_provider.dart';
 
 import '../../../../core/error/app_exception.dart';
-import '../providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});

@@ -9,7 +9,7 @@ import '../presentation/splash_screen.dart';
 
 class _GoRouterRefreshNotifier extends ChangeNotifier {
   _GoRouterRefreshNotifier(Ref ref) {
-    ref.listen(authNotifierProvider, (_, __) => notifyListeners());
+    ref.listen(authNotifierProvider, (_, _) => notifyListeners());
   }
 }
 
@@ -28,10 +28,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       final isLoggedIn = authState.valueOrNull != null && !authState.hasError;
-      final isAuthRoute = location == '/login' || location == '/splash';
 
-      if (!isLoggedIn && !isAuthRoute) return '/login';
-      if (isLoggedIn && isAuthRoute) return '/dashboard';
+      if (!isLoggedIn){
+        return location == '/login' ? null : '/login';
+      } 
+      
+      if (location == '/login' || location == '/splash') return '/dashboard';
       return null;
     },
     routes: [

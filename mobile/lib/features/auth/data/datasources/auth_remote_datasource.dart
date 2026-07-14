@@ -12,12 +12,17 @@ class AuthRemoteDatasource {
     required String email,
     required String password,
   }) async {
+      try {
     final response = await _dio.post(
       ApiConstants.login,
       data: {'email' : email, 'password' : password},
     );
     return AuthResponseModel.fromJson(response.data as Map<String, dynamic>);
+  } on DioException catch(e) {
+    if (e.error is Exception) throw e.error!;
+    rethrow;
   }
+}
 
   Future<void> logout({required String refreshToken}) async {
     await _dio.post(

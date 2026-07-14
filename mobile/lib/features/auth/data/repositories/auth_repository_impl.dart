@@ -8,9 +8,8 @@ import '../datasources/auth_remote_datasource.dart';
 class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl({
     required AuthRemoteDatasource remoteDatasource,
-    required SecureStorageService storage,
-  }) : _remote = remoteDatasource,
-       _storage = storage;
+    required this._storage,
+  }) : _remote = remoteDatasource;
   
   final AuthRemoteDatasource _remote;
   final SecureStorageService _storage;

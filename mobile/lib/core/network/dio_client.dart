@@ -8,9 +8,9 @@ typedef OnRefreshFailed = Future<void> Function();
 
 class DioClient {
   DioClient({
-    required SecureStorageService storage,
+    required this._storage,
     this.onRefreshFailed,
-  }) : _storage = storage {
+  }) {
     _dio = Dio(
       BaseOptions(
         baseUrl: ApiConstants.baseUrl,
@@ -59,8 +59,9 @@ class DioClient {
   ) async {
     final isUnauthorized = err.response?.statusCode == 401;
     final isRefreshCall = err.requestOptions.path == ApiConstants.refresh;
+    final isLoginCall = err.requestOptions.path == ApiConstants.login;
 
-    if (!isUnauthorized || isRefreshCall){
+    if (!isUnauthorized || isRefreshCall || isLoginCall){
       handler.next(_translate(err));
       return;
     }

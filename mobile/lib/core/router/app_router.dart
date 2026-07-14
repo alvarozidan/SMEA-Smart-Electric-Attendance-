@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
-import '../../features/auth/presentation/screens/dashboard_screen.dart';
+import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../presentation/splash_screen.dart';
 
 class _GoRouterRefreshNotifier extends ChangeNotifier {

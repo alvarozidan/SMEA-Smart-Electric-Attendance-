@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../constant/api_constant.dart';
 import '../error/app_exception.dart';
@@ -57,6 +58,11 @@ class DioClient {
     DioException err,
     ErrorInterceptorHandler handler,
   ) async {
+
+    debugPrint('DIO ERROR: ${err.requestOptions.path} -> ${err.response?.statusCode}');
+    debugPrint('DIO ERROR BODY: ${err.response?.data}');
+
+
     final isUnauthorized = err.response?.statusCode == 401;
     final isRefreshCall = err.requestOptions.path == ApiConstants.refresh;
     final isLoginCall = err.requestOptions.path == ApiConstants.login;

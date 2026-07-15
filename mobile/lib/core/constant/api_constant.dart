@@ -1,7 +1,7 @@
 class ApiConstants {
   ApiConstants._();
 
-  static const String baseUrl = 'http://10.147.174.130:3000/api/v1';
+  static const String baseUrl = 'http://10.233.153.130:3000/api/v1';
 
   //Auth
   static const String login = '/auth/login';
@@ -10,6 +10,7 @@ class ApiConstants {
 
   //Students
   static const String students = '/students';
+  static String studentById(int id) => '/students/$id';
 
   //Classes
   static const String classes = '/classes';

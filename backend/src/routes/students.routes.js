@@ -9,6 +9,6 @@ router.get("/", studentsController.getAll);
 router.get("/:id", studentsController.getById);
 router.post("/", studentsController.create);
 router.put("/:id", studentsController.update);
-router.delete("/", studentsController.remove);
+router.delete("/:id", studentsController.remove);
 
 module.exports = router;

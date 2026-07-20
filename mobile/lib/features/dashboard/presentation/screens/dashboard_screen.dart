@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/dashboard_provider.dart';
@@ -33,6 +34,35 @@ class DashboardScreen extends ConsumerWidget {
             onPressed: () => ref.read(authNotifierProvider.notifier).logout(), 
           ),
         ],
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(child: Text('Smart Attendance')),
+            ListTile(
+              leading: const Icon(Icons.dashboard_outlined),
+              title: const Text('Dashboard'),
+              onTap: () => Navigator.of(context).pop(),
+            ),
+            ListTile(
+              leading: const Icon(Icons.groups_outlined),
+              title: const Text('Siswa'),
+              onTap: () {
+                Navigator.of(context).pop();
+                context.push('/students');
+              },
+            ),
+             ListTile(
+              leading: const Icon(Icons.school_outlined),
+              title: const Text('Kelas'),
+              onTap: () {
+                Navigator.of(context).pop();
+                context.push('/classes');
+              },
+            ),
+          ],
+        ),
       ),
       body: RefreshIndicator(
         onRefresh: () => _refresh(ref), 

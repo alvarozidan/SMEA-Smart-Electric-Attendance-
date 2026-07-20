@@ -1,7 +1,7 @@
 class ApiConstants {
   ApiConstants._();
 
-  static const String baseUrl = 'http://10.233.153.130:3000/api/v1';
+  static const String baseUrl = 'http://10.141.237.130:3000/api/v1';
 
   //Auth
   static const String login = '/auth/login';
@@ -14,6 +14,8 @@ class ApiConstants {
 
   //Classes
   static const String classes = '/classes';
+  static String classById(int id) => '/classes/$id';
+  static const String users = '/users';
 
   //RFID
   static const String rfidRegister = '/rfid/register';

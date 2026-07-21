@@ -10,7 +10,7 @@ async function getAll(user){
 
     return prisma.student.findMany({
         where,
-        include: { class: true },
+        include: { class: true, credential: true },
         orderBy: { name: "asc" },
     });
 }
@@ -18,7 +18,7 @@ async function getAll(user){
 async function getById(id, user){
     const student = await prisma.student.findFirst({
         where : { id, isDeleted: false },
-        include: { class: true }, 
+        include: { class: true, credential: true }, 
     });
 
     if (!student){

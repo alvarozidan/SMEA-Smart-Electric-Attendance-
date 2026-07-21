@@ -7,6 +7,7 @@ import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/students/presentation/screens/students_list_screen.dart';
 import '../../features/classes/presentation/screens/clasess_list_screen.dart';
+import '../../features/attendance/presentation/screens/attendance_list_screen.dart';
 import '../presentation/splash_screen.dart';
 
 class _GoRouterRefreshNotifier extends ChangeNotifier {
@@ -44,6 +45,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/dashboard', builder: (context, state) => const DashboardScreen()),
       GoRoute(path: '/students', builder: (context, state) => const StudentsListScreen()),
       GoRoute(path: '/classes', builder: (context, state) => const ClassesListScreen()),
+      GoRoute(path: '/attendance', builder: (context, state) => const AttendanceListScreen()),
     ],
   );
 });

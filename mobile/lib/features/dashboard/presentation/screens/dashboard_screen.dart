@@ -61,6 +61,14 @@ class DashboardScreen extends ConsumerWidget {
                 context.push('/classes');
               },
             ),
+            ListTile(
+              leading: const Icon(Icons.checklist_outlined),
+              title: const Text('Presensi'),
+              onTap: () {
+                Navigator.of(context).pop();
+                context.push('/attendance');
+              },
+            ),
           ],
         ),
       ),

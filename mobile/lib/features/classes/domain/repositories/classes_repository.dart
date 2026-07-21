@@ -11,8 +11,8 @@ abstract class ClassesRepository {
     int? homeroomTeacherId,
   });
 
-  Future<ClassEntity> update({
-    int id,
+  Future<ClassEntity> update(
+    int id, {
     String? name,
     String? checkInStart,
     String? checkInDeadline,

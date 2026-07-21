@@ -6,7 +6,7 @@ function parseTime(value, fieldName){
     if (!TIME_REGEX.test(value)){
         throw { status: 400, message: `${fieldName} harus berformat HH:mm (contoh: 07:00)` };
     }
-    return new Date(`1970-01-01T${value}:00`);
+    return new Date(`1970-01-01T${value}:00Z`);
 }
 
 async function getAll(user){

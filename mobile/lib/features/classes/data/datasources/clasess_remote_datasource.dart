@@ -23,7 +23,7 @@ class ClasessRemoteDatasource {
   }
 
   Future<List<dynamic>> getTeacherOptions() async {
-    final response = await _dio.post(ApiConstants.users, queryParameters: {'role' : 'guru'});
+    final response = await _dio.get(ApiConstants.users, queryParameters: {'role' : 'guru'});
     return response.data as List<dynamic>;
   }
   

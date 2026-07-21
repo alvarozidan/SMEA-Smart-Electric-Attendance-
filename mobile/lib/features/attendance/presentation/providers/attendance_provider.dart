@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter/foundation.dart';
 
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/datasources/attendance_remote_datasource.dart';
@@ -89,11 +88,9 @@ class ReportController extends AutoDisposeAsyncNotifier<void> {
     required DateTime endDate,
     int? classId,
   }) async {
-    debugPrint('REPORT: mulai downloadAndOpen');
     state = const AsyncLoading();
 
     final result = await AsyncValue.guard(() async {
-      debugPrint('REPORT: manggil repository.downloadReport');
       final report = await ref.read(attendanceRepositoryProvider).downloadReport(
         format: format, 
         startDate: startDate, 
@@ -101,18 +98,13 @@ class ReportController extends AutoDisposeAsyncNotifier<void> {
         classId: classId,
       );
 
-      debugPrint('REPORT: dapat ${report.bytes.length} bytes, filename=${report.filename}');
       final dir = await getTemporaryDirectory();
-      debugPrint('REPORT: temp dir = ${dir.path}');
       final file = File('${dir.path}/${report.filename}');
       await file.writeAsBytes(report.bytes);
-      debugPrint('REPORT: file ditulis, membuka...');
       await OpenFile.open(file.path);
-      debugPrint('REPORT: OpenFile.open selesai');
     });
 
     state = result.hasError ? AsyncError(result.error!, result.stackTrace!) : const AsyncData(null);
-    debugPrint('REPORT: selesai, hasError=${result.hasError}, error=${result.error}');
     return !result.hasError;
   }
 }

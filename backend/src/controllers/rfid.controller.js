@@ -39,13 +39,3 @@ async function toggleRegistrationMode(req, res, nex){
 }
 
 module.exports = { register, unbind, toggleRegistrationMode };
-
-// {
-//     "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc4Mzc3Njk4NSwiZXhwIjoxNzgzNzgwNTg1fQ.QxNIfKLeqBDYeV_2Y_3Lw71-ZPCTKrUzdCy_X7w8uaQ",
-//     "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc4Mzc3Njk4NSwiZXhwIjoxNzg0MzgxNzg1fQ.jM1HYrpkRNNcA7Q8tJso8Bdg0hM44udPOVH9P9rWiNI",
-//     "user": {
-//         "id": 1,
-//         "email": "admin@sekolah.test",
-//         "role": "admin"
-//     }
-// }

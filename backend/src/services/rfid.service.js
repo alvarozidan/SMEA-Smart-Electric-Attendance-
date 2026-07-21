@@ -112,7 +112,7 @@ async function unbind(uid, user){
     });
 }
 
-async function toogleRegistrationMode(deviceId, enabled){
+async function toggleRegistrationMode(deviceId, enabled){
     const device = await prisma.device.findUnique({ where: { id: deviceId } });
     if(!device){
         throw { status: 404, message: "Device tidak ditemukan" };

@@ -1,20 +1,19 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/error/app_exception.dart';
 import '../../../devices/domain/entities/device_entity.dart';
+import '../../../devices/domain/entities/scan_result.dart';
 import '../../../devices/presentation/providers/devices_provider.dart';
 import '../../../students/domain/entities/student_entity.dart';
 import '../providers/rfid_provider.dart';
 
-/// [student] wajib -- entry point-nya selalu dari student_list_screen,
-/// jadi konteks siswa sudah pasti ada, tidak perlu dropdown pilih siswa
-/// lagi di sini (mengurangi kemungkinan Admin salah pilih siswa).
 class RfidBindScreen extends ConsumerStatefulWidget {
   const RfidBindScreen({super.key, required this.student, required this.type});
 
   final StudentEntity student;
-  /// 'rfid' | 'fingerprint'
   final String type;
 
   @override
@@ -26,10 +25,63 @@ class _RfidBindScreenState extends ConsumerState<RfidBindScreen> {
   final _valueController = TextEditingController();
   int? _selectedDeviceId;
 
+  Timer? _pollTimer;
+  final DateTime _sessionStart = DateTime.now();
+  DateTime? _lastAppliedScanTime;
+  bool _isWaitingForTap = false;
+
+  bool get _isRfid => widget.type == 'rfid';
+
   @override
   void dispose() {
+    _pollTimer?.cancel();
     _valueController.dispose();
     super.dispose();
+  }
+
+  void _startListening(int deviceId) {
+    if (!_isRfid) return;
+
+    _pollTimer?.cancel();
+    setState(() => _isWaitingForTap = true);
+
+    _pollTimer = Timer.periodic(const Duration(seconds: 2), (_) => _pollLastScan(deviceId));
+  }
+
+  void _stopListening() {
+    _pollTimer?.cancel();
+    setState(() => _isWaitingForTap = false);
+  }
+
+  Future<void> _pollLastScan(int deviceId) async {
+    if (!mounted) return;
+
+    final ScanResult? result;
+    try {
+      result = await ref.read(devicesRepositoryProvider).getLastScan(deviceId);
+    } catch (_) {
+      return; 
+    }
+
+    if (result == null || !mounted) return;
+
+    final isNew = result.scannedAt.isAfter(_sessionStart) &&
+        (_lastAppliedScanTime == null || result.scannedAt.isAfter(_lastAppliedScanTime!));
+
+    if (!isNew) return;
+
+    setState(() {
+      _valueController.text = result!.value;
+      _lastAppliedScanTime = result.scannedAt;
+      _isWaitingForTap = false;
+    });
+    _pollTimer?.cancel();
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Kartu terdeteksi!'), duration: Duration(seconds: 2)),
+      );
+    }
   }
 
   String _mapErrorMessage(Object error) {
@@ -70,7 +122,6 @@ class _RfidBindScreenState extends ConsumerState<RfidBindScreen> {
     final formState = ref.watch(rfidActionControllerProvider);
     final devicesAsync = ref.watch(devicesListProvider);
     final isSubmitting = formState.isLoading;
-    final isFingerprint = widget.type == 'fingerprint';
 
     ref.listen(rfidActionControllerProvider, (previous, next) {
       if (next.hasError && !next.isLoading) {
@@ -82,7 +133,7 @@ class _RfidBindScreenState extends ConsumerState<RfidBindScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isFingerprint ? 'Daftarkan Fingerprint' : 'Daftarkan RFID'),
+        title: Text(_isRfid ? 'Daftarkan RFID' : 'Daftarkan Fingerprint'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -107,10 +158,6 @@ class _RfidBindScreenState extends ConsumerState<RfidBindScreen> {
               const SizedBox(height: 16),
               devicesAsync.when(
                 data: (devices) {
-                  // Cuma tampilkan device yang online DAN mode registrasi
-                  // aktif -- sesuai business rule #6 & #7. Kalau tidak ada
-                  // device yang eligible, kasih tau eksplisit alih-alih
-                  // dropdown kosong yang membingungkan.
                   final eligible = devices
                       .where((d) => d.status == DeviceStatus.online && d.registrationMode)
                       .toList();
@@ -137,23 +184,39 @@ class _RfidBindScreenState extends ConsumerState<RfidBindScreen> {
                     items: eligible
                         .map((d) => DropdownMenuItem(value: d.id, child: Text(d.deviceCode)))
                         .toList(),
-                    onChanged: (value) => setState(() => _selectedDeviceId = value),
+                    onChanged: (value) {
+                      setState(() => _selectedDeviceId = value);
+                      if (value != null) _startListening(value);
+                    },
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (error, _) => const Text('Gagal memuat daftar device'),
               ),
               const SizedBox(height: 16),
+              if (_isRfid && _selectedDeviceId != null) ...[
+                _ListeningIndicator(
+                  isWaiting: _isWaitingForTap,
+                  hasValue: _valueController.text.isNotEmpty,
+                  onRescan: () {
+                    _valueController.clear();
+                    _startListening(_selectedDeviceId!);
+                  },
+                ),
+                const SizedBox(height: 12),
+              ],
               TextFormField(
                 controller: _valueController,
-                keyboardType: isFingerprint ? TextInputType.number : TextInputType.text,
+                readOnly: false, 
+                keyboardType: _isRfid ? TextInputType.text : TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: isFingerprint ? 'Index Fingerprint' : 'RFID UID',
-                  hintText: isFingerprint
-                      ? 'Lihat index di layar OLED device'
-                      : 'Lihat UID di layar OLED device',
+                  labelText: _isRfid ? 'RFID UID' : 'Index Fingerprint',
+                  hintText: _isRfid ? 'Otomatis terisi saat kartu di-tap, atau isi manual' : 'Isi manual',
                   border: const OutlineInputBorder(),
                 ),
+                onChanged: (_) {
+                  if (_pollTimer?.isActive ?? false) _stopListening();
+                },
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) return 'Wajib diisi';
                   return null;
@@ -170,6 +233,40 @@ class _RfidBindScreenState extends ConsumerState<RfidBindScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _ListeningIndicator extends StatelessWidget {
+  const _ListeningIndicator({required this.isWaiting, required this.hasValue, required this.onRescan});
+
+  final bool isWaiting;
+  final bool hasValue;
+  final VoidCallback onRescan;
+
+  @override
+  Widget build(BuildContext context) {
+    if (hasValue) {
+      return Card(
+        color: Colors.green.withValues(alpha: 0.1),
+        child: ListTile(
+          leading: const Icon(Icons.check_circle, color: Colors.green),
+          title: const Text('Kartu terdeteksi'),
+          trailing: TextButton(onPressed: onRescan, child: const Text('Scan Ulang')),
+        ),
+      );
+    }
+
+    return Card(
+      color: Colors.blue.withValues(alpha: 0.1),
+      child: const ListTile(
+        leading: SizedBox(
+          height: 20,
+          width: 20,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+        title: Text('Menunggu kartu di-tap ke device...'),
       ),
     );
   }

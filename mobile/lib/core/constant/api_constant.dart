@@ -30,6 +30,7 @@ class ApiConstants {
   //Devices
   static const String devices = '/devices';
   static const String devicesheartbeat = '/devices/heartbeat';
+  static String deviceLastScan(int id) => '/devices/$id/last-scan';
 
   //Dashboard
   static const String dashboardSummary = '/dashboard/summary';

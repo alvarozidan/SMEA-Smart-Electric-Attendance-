@@ -1,6 +1,6 @@
 const prisma = require("../config/prisma");
 
-const HEARTBEAT_INTERVAL_MS = 60 * 1000; // rule #8
+const HEARTBEAT_INTERVAL_MS = 60 * 1000; 
 
 function isOnline(device) {
     if (!device.lastSeenAt) return false;
@@ -12,7 +12,7 @@ async function getAll() {
 
     return devices.map((d) => ({
         ...d,
-        status: isOnline(d) ? "online" : "offline", // status live, bukan kolom mentah
+        status: isOnline(d) ? "online" : "offline",
     }));
 }
 
@@ -33,4 +33,23 @@ async function heartbeat(deviceCode, firmwareVersion) {
     });
 }
 
-module.exports = { getAll, heartbeat, isOnline, HEARTBEAT_INTERVAL_MS };
+async function getLastUnknownScan(deviceId) {
+    const log = await prisma.log.findFirst({
+        where: {
+            deviceId,
+            eventType: "scan_attempt",
+            payload: { path: ['result'], equals: "unknown_credential" },
+        },
+        orderBy: { createdAt: 'desc' },
+    });
+
+    if (!log) return null;
+
+    return {
+        value: log.payload.value,
+        type: log.method,
+        scannedAt: log.createdAt,
+    };
+}
+
+module.exports = { getAll, heartbeat, isOnline, HEARTBEAT_INTERVAL_MS, getLastUnknownScan };

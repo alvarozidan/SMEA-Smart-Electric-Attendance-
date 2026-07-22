@@ -1,3 +1,5 @@
+import 'package:mobile/features/devices/domain/entities/scan_result.dart';
+
 import '../../domain/entities/device_entity.dart';
 import '../../domain/repositories/device_repository.dart';
 import '../datasources/device_remote_datasource.dart';
@@ -18,5 +20,16 @@ class DevicesRepositoryImpl implements DeviceRepository {
   Future<DeviceEntity> toggleRegistrationMode(int deviceId, bool enabled) async {
     final json = await _remote.toggleRegistrationMode(deviceId, enabled);
     return DeviceModel.fromJson(json);
+  }
+
+  @override
+  Future<ScanResult?> getLastScan(int deviceId) async {
+    final json = await _remote.getLastScan(deviceId);
+    if (json == null) return null;
+    return ScanResult(
+      value: json['value'] as String, 
+      type: json['type'] as String, 
+      scannedAt: DateTime.parse(json['scannedAt'] as String),
+    );
   }
 }

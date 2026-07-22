@@ -19,4 +19,9 @@ class DeviceRemoteDatasource {
     );
     return response.data as Map<String, dynamic>;
   }
+
+  Future<Map<String, dynamic>?> getLastScan(int deviceId) async {
+    final response = await _dio.get(ApiConstants.deviceLastScan(deviceId));
+    return response.data as Map<String, dynamic>?;
+  }
 }

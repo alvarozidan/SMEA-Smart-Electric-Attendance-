@@ -22,4 +22,16 @@ async function heartbeat(req, res, next) {
     }
 }
 
-module.exports = { getAll, heartbeat };
+async function lastScan(req, res, next) {
+    try {
+        const deviceId = parseInt(req.params.id, 10);
+        if (isNaN(deviceId)) return res.status(400).json({ message: "ID device tida valid" });
+
+        const result = await devicesService.getLastUnknownScan(deviceId);
+        res.status(200).json(result);
+    } catch (err) {
+        next(err);
+    }
+}
+
+module.exports = { getAll, heartbeat, lastScan };

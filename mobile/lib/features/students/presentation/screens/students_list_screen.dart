@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/student_entity.dart';
 import '../providers/students_provider.dart';
 import 'student_form_screen.dart';
+import '../../../rfid/presentation/screens/rfid_bind_screen.dart';
+import '../../../rfid/presentation/providers/rfid_provider.dart';
 
 class StudentsListScreen extends ConsumerStatefulWidget {
   const StudentsListScreen({super.key});
@@ -55,6 +57,101 @@ class _StudentsListScreenState extends ConsumerState<StudentsListScreen> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(success ? 'Siswa berhasil dihapus' : 'Gagal menghapus siswa')),
+    );
+  }
+
+  Future<void> _openCredentialSheet(
+    BuildContext context,
+    WidgetRef ref,
+    StudentEntity student,
+  ) async {
+    await showModalBottomSheet(
+      context: context,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text('Kredensial: ${student.name}', style: Theme.of(sheetContext).textTheme.titleMedium),
+              ),
+              ListTile(
+                leading: Icon(Icons.credit_card, color: student.hasRfid ? Colors.green : Colors.grey),
+                title: Text(student.hasRfid ? 'RFID: ${student.rfidUid}' : 'RFID belum terpasang'),
+                trailing: student.hasRfid
+                    ? TextButton(
+                        onPressed: () async {
+                          Navigator.of(sheetContext).pop();
+                          await _confirmUnbindRfid(context, ref, student);
+                        },
+                        child: const Text('Lepas'),
+                      )
+                    : TextButton(
+                        onPressed: () {
+                          Navigator.of(sheetContext).pop();
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => RfidBindScreen(student: student, type: 'rfid'),
+                            ),
+                          );
+                        },
+                        child: const Text('Daftarkan'),
+                      ),
+              ),
+              ListTile(
+                leading: Icon(Icons.fingerprint, color: student.hasFingerprint ? Colors.green : Colors.grey),
+                title: Text(
+                  student.hasFingerprint ? 'Fingerprint terpasang' : 'Fingerprint belum terpasang',
+                ),
+                // Backend belum ada endpoint unbind fingerprint (lihat
+                // kontrak awal) -- jadi kalau sudah terpasang, tidak ada
+                // aksi yang bisa ditawarkan, cukup informasi status saja.
+                trailing: student.hasFingerprint
+                    ? null
+                    : TextButton(
+                        onPressed: () {
+                          Navigator.of(sheetContext).pop();
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => RfidBindScreen(student: student, type: 'fingerprint'),
+                            ),
+                          );
+                        },
+                        child: const Text('Daftarkan'),
+                      ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _confirmUnbindRfid(
+    BuildContext context,
+    WidgetRef ref,
+    StudentEntity student,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Lepas RFID'),
+        content: Text('Lepas RFID milik ${student.name}? Siswa perlu didaftarkan ulang kalau ingin dipakai lagi.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Batal')),
+          FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Lepas')),
+        ],
+      ),
+    );
+
+    if (confirmed != true || student.rfidUid == null || !mounted) return;
+
+    final success = await ref.read(rfidActionControllerProvider.notifier).unbindRfid(student.rfidUid!);
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(success ? 'RFID berhasil dilepas' : 'Gagal melepas RFID')),
     );
   }
 
@@ -116,7 +213,7 @@ class _StudentsListScreenState extends ConsumerState<StudentsListScreen> {
               separatorBuilder: (_, __) => const SizedBox(height: 8),
               itemBuilder: (context, index) {
                 final student = filtered[index];
-                return Card(
+               return Card(
                   child: ListTile(
                     title: Text(student.name),
                     subtitle: Text(
@@ -125,6 +222,14 @@ class _StudentsListScreenState extends ConsumerState<StudentsListScreen> {
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        IconButton(
+                          icon: Icon(
+                            Icons.credit_card,
+                            color: student.hasRfid ? Colors.green : Colors.grey,
+                          ),
+                          tooltip: student.hasRfid ? 'RFID terpasang' : 'RFID belum terpasang',
+                          onPressed: () => _openCredentialSheet(context, ref, student),
+                        ),
                         IconButton(
                           icon: const Icon(Icons.edit_outlined),
                           onPressed: () {

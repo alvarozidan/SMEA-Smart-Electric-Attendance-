@@ -69,6 +69,15 @@ class DashboardScreen extends ConsumerWidget {
                 context.push('/attendance');
               },
             ),
+            if ((ref.watch(authNotifierProvider).valueOrNull?.isAdmin ?? false))
+              ListTile(
+                leading: const Icon(Icons.router_outlined),
+                title: const Text('Perangkat'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  context.push('/devices');
+                },
+              ),
           ],
         ),
       ),

@@ -11,6 +11,7 @@ class StudentModel {
     }
 
     final classJson = json['class'] as Map<String, dynamic>?;
+    final credentialJson = json['credential'] as Map<String, dynamic>?;
 
     return StudentEntity(
       id: id, 
@@ -18,6 +19,8 @@ class StudentModel {
       name: name, 
       classId: json['classId'] as int?,
       className: classJson?['name'] as String?,
+      rfidUid: credentialJson?['rfidUid'] as String?,
+      fingerprintIndex: credentialJson?['fingerprintIndex'] as int?,
     );
   }
 

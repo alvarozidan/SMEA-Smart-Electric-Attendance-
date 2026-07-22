@@ -123,4 +123,4 @@ async function toggleRegistrationMode(deviceId, enabled){
     });
 }
 
-module.exports = { register, unbind, toogleRegistrationMode };
+module.exports = { register, unbind, toggleRegistrationMode };

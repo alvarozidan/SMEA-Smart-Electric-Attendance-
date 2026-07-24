@@ -1,7 +1,7 @@
 class ApiConstants {
   ApiConstants._();
 
-  static const String baseUrl = 'http://10.141.237.130:3000/api/v1';
+  static const String baseUrl = 'http://10.10.11.2:3000/api/v1';
 
   //Auth
   static const String login = '/auth/login';

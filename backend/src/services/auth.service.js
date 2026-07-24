@@ -13,6 +13,10 @@ async function login(email, password){
         throw { status: 401, message: "Email atau password anda salah"};
     }
 
+    if (!user.isActive) {
+        throw { status: 403, message: "Akun anda telah dinonaktifkan" };
+    }
+
     const isValid = await comparePassword(password, user.passwordHash);
     if (!isValid) {
         throw { status: 401, message: "Email atau password anda salah"};

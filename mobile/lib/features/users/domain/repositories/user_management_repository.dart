@@ -1,5 +1,3 @@
-import 'package:flutter/widgets.dart';
-
 import '../entities/managed_user_entity.dart';
 
 abstract class UserManagementRepository {

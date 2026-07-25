@@ -69,6 +69,7 @@ class _ClassFormScreenState extends ConsumerState<ClassFormScreen> {
 
   String _mapErrorMessage(Object error) {
     return switch (error) {
+      BadRequestException(:final message) => message,
       ForbiddenException() => 'Anda tidak punya akses untuk aksi ini',
       NetworkException() => 'Tidak bisa terhubung ke server',
       _ => 'Gagal menyimpan data, silakan coba lagi',

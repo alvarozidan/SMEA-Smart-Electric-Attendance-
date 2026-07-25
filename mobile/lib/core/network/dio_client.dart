@@ -110,6 +110,7 @@ class DioClient {
   DioException _translate(DioException err){
     final code = err.response?.statusCode;
     final AppException mapped = switch (code) {
+      400 => BadRequestException(_extractMessage(err) ?? 'Permintaan tidak valid'),
       401 => UnauthorizedException(),
       403 => ForbiddenException(),
       404 => NotFoundException(),

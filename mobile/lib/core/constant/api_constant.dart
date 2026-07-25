@@ -8,6 +8,10 @@ class ApiConstants {
   static const String refresh = '/auth/refresh';
   static const String logout = '/auth/logout';
 
+  //Users alias guru
+  static String userById(int id) => 'users/$id';
+  static String userReactivate(int id) => 'users/$id/reactivate';
+
   //Students
   static const String students = '/students';
   static String studentById(int id) => '/students/$id';

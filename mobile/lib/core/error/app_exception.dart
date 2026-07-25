@@ -6,6 +6,11 @@ sealed class AppException implements Exception {
   String toString() => message;
 }
 
+//400(bad request)
+class BadRequestException extends AppException {
+  BadRequestException([super.message = 'Permintaan tidak valid']);
+}
+
 //401(redirect)
 class UnauthorizedException extends AppException {
   UnauthorizedException([super.message = 'Sesi berakhir, silahkan login ulang']);

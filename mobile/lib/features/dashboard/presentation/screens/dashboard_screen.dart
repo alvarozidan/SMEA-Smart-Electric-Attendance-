@@ -71,6 +71,15 @@ class DashboardScreen extends ConsumerWidget {
             ),
             if ((ref.watch(authNotifierProvider).valueOrNull?.isAdmin ?? false))
               ListTile(
+                leading: const Icon(Icons.admin_panel_settings_outlined),
+                title: const Text('Akun Guru & Admin'),
+                onTap: () {
+                Navigator.of(context).pop();
+                context.push('/users');
+              },
+            ),
+            if ((ref.watch(authNotifierProvider).valueOrNull?.isAdmin ?? false))
+              ListTile(
                 leading: const Icon(Icons.router_outlined),
                 title: const Text('Perangkat'),
                 onTap: () {

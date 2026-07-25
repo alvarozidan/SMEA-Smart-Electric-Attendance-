@@ -86,6 +86,7 @@ class _RfidBindScreenState extends ConsumerState<RfidBindScreen> {
 
   String _mapErrorMessage(Object error) {
     return switch (error) {
+      BadRequestException(:final message) => message,
       ConflictException(:final message) => message,
       ForbiddenException() => 'Anda tidak punya akses untuk aksi ini',
       NetworkException() => 'Tidak bisa terhubung ke server',

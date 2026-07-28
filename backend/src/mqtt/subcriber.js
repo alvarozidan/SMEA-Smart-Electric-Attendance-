@@ -10,7 +10,7 @@ function extractDeviceCode(topic){
     return topic.split("/")[1];
 }
 
-async function resolveDeviceId(deviceCode) {
+async function resolveDevice(deviceCode) {
     const device = await prisma.device.findUnique({ where: {deviceCode } });
     if(!device){
         throw { status: 404, message: `Device dengan code ${deviceCode} tidak terdaftar` };
@@ -20,9 +20,9 @@ async function resolveDeviceId(deviceCode) {
 
 async function handleScan(deviceCode, payload){
     try {
-        const deviceId = await resolveDeviceId(deviceCode);
+        const device = await resolveDevice(deviceCode);
 
-        if(device.deviceType === "PERPUSTAKAAN") {
+        if (device.deviceType === "PERPUSTAKAAN") {
             await libraryService.recordLibraryScan({ deviceId: device.id, rfidUid: payload.value });
             publishResult(deviceCode, { success: true, status: "library_scan_recorded" });
             return;
@@ -53,9 +53,9 @@ async function handleSync(deviceCode, payload){
         return;
     }
 
-    let deviceId;
+    let device;
     try {
-        deviceId = await resolveDeviceId(deviceCode);
+        device = await resolveDevice(deviceCode);
     } catch(err){
         console.error(err.message);
         return;

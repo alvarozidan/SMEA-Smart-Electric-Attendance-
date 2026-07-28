@@ -23,9 +23,9 @@ app.use("/api/v1/attendance", attendanceRoutes);
 app.use("/api/v1/rfid", rfidRoutes);
 app.use("/api/v1/devices", devicesRoutes);
 app.use("/api/v1/dashboard", dashboardRoutes);
-app.use("/api/v1/users", usersRoutes)
-app.use("/api/v1/library", libraryRoutes)
-app.use("/api/v1/books", bookRoutes)
+app.use("/api/v1/users", usersRoutes);
+app.use("/api/v1/library", libraryRoutes);
+app.use("/api/v1/books", bookRoutes);
 
 app.use(errorHandler);
 

@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
@@ -17,6 +14,7 @@ datasource db {
 enum UserRole {
   admin
   guru
+  pustakawan
 }
 
 enum AttendanceStatus {
@@ -183,31 +181,30 @@ model RefreshToken {
 }
 
 model Book {
-  id                Int             @id @default(autoincrement())
-  barcode           String          @unique
-  title             String
-  BookCategory      BookCategory
-  status            BookStatus      @default(TERSEDIA)
-  createdAt         DateTime        @default(now()) @map("created_at")
+  id        Int          @id @default(autoincrement())
+  barcode   String       @unique
+  title     String
+  category  BookCategory
+  status    BookStatus   @default(TERSEDIA)
+  createdAt DateTime     @default(now()) @map("created_at")
 
-  loans             Loan[]
+  loans     Loan[]
 
-
-  @@map("books)
+  @@map("books")
 }
 
 model Loan {
-  id               Int              @id @default(autoincrement())
-  bookId           Int              @map("book_id")
-  rfidUid          String           @map("rfid_uid")
-  borrowedAt       DateTime         @default(now()) @map("borrowed_at")
-  dueDate          DateTime         @map("due_date")
-  returnedAt       DateTime?        @map("returned_at")
-  status           LoanStatus       @default(DIPINJAM)
-  overdueDays      Int              @default(0) @map("overdue_days")
+  id             Int        @id @default(autoincrement())
+  bookId         Int        @map("book_id")
+  rfidUid        String     @map("rfid_uid")
+  borrowedAt     DateTime   @default(now()) @map("borrowed_at")
+  dueDate        DateTime   @map("due_date")
+  returnedAt     DateTime?  @map("returned_at")
+  status         LoanStatus @default(DIPINJAM)
+  overdueDays    Int        @default(0) @map("overdue_days")
+  extensionCount Int        @default(0) @map("extension_count")
 
-
-  book              Book              @relation(fields: [bookId], references : [id])
+  book              Book              @relation(fields: [bookId], references: [id])
   studentCredential StudentCredential @relation(fields: [rfidUid], references: [rfidUid])
 
   @@index([status])

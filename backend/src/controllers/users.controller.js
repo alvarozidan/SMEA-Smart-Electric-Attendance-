@@ -18,8 +18,8 @@ async function create(req, res, next) {
             return res.status(400).json({ message: "nama, email, password, dan role wajib diisi "});
         }
 
-        if (!["admin", "guru"].includes(role)) {
-            return res.status(400).json({ message: "role harus admin atau guru " });
+        if (!["admin", "guru", "pustakawan"].includes(role)) {
+            return res.status(400).json({ message: "role harus admin, guru atau pustakawan " });
         }
 
         if (password.length < 6) {
@@ -39,8 +39,8 @@ async function update(req, res, next) {
         if (isNaN(id)) return res.status(400).json({ message: "ID user tidak valid" });
 
         const { name, email, password, role } = req.body;
-        if (role !== undefined && !["admin", "guru"].includes(role)) {
-            return res.status(400).json({ message: "Role harus admin atau guru "});
+        if (role !== undefined && !["admin", "guru", "pustakawan"].includes(role)) {
+            return res.status(400).json({ message: "Role harus admin, guru atau pustakawan"});
         }
 
         if (password !== undefined && password.length < 6) {

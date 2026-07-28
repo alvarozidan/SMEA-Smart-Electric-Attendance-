@@ -8,8 +8,8 @@ router.use(authenticate);
 
 router.get("/", bookController.getAll);
 router.get(":id", bookController.getById);
-router.post("/", requireRole("admin"), bookController.create);
-router.put("/:id", requireRole("admin"), bookController.update);
-router.delete("/:id", requireRole("admin"), bookController.remove);
+router.post("/", requireRole("admin", "pustakawan"), bookController.create);
+router.put("/:id", requireRole("admin", "pustakawan"), bookController.update);
+router.delete("/:id", requireRole("admin", "pustakawan"), bookController.remove);
 
 module.exports = router;

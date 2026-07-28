@@ -15,7 +15,7 @@ async function create(req, res, next) {
         const { name, email, password, role } = req.body;
 
         if (!name || !email || !password || !role) {
-            return res.status(400),json({ message: "nama, email, password, dan role wajib diisi "});
+            return res.status(400).json({ message: "nama, email, password, dan role wajib diisi "});
         }
 
         if (!["admin", "guru"].includes(role)) {

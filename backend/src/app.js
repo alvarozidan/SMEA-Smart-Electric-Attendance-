@@ -9,6 +9,8 @@ const rfidRoutes = require('./routes/rfid.routes');
 const devicesRoutes = require('./routes/devices.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 const usersRoutes = require('./routes/users.routes');
+const libraryRoutes = require('./routes/library.routes');
+const bookRoutes = require('./routes/book.routes');
 
 const app = express();
 
@@ -21,7 +23,9 @@ app.use("/api/v1/attendance", attendanceRoutes);
 app.use("/api/v1/rfid", rfidRoutes);
 app.use("/api/v1/devices", devicesRoutes);
 app.use("/api/v1/dashboard", dashboardRoutes);
-app.use("/api/v1/users", usersRoutes);
+app.use("/api/v1/users", usersRoutes)
+app.use("/api/v1/library", libraryRoutes)
+app.use("/api/v1/books", bookRoutes)
 
 app.use(errorHandler);
 

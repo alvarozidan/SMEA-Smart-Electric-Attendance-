@@ -4,6 +4,7 @@ const { publishResult } = require('./publisher');
 const prisma = require('../config/prisma');
 const attendanceService = require('../services/attendance.service');
 const devicesService = require('../services/devices.service');
+const libraryService = require('../services/library.service');
 
 function extractDeviceCode(topic){
     return topic.split("/")[1];
@@ -14,16 +15,23 @@ async function resolveDeviceId(deviceCode) {
     if(!device){
         throw { status: 404, message: `Device dengan code ${deviceCode} tidak terdaftar` };
     }
-    return device.id;
+    return device;
 }
 
 async function handleScan(deviceCode, payload){
     try {
         const deviceId = await resolveDeviceId(deviceCode);
+
+        if(device.deviceType === "PERPUSTAKAAN") {
+            await libraryService.recordLibraryScan({ deviceId: device.id, rfidUid: payload.value });
+            publishResult(deviceCode, { success: true, status: "library_scan_recorded" });
+            return;
+        }
+
         const attendance = await attendanceService.recordScan({
             method: payload.type,
             value: payload.value,
-            deviceId,
+            deviceId: device.id,
         });
         publishResult(deviceCode, { success: true, status: attendance.status });
     }catch(err){
@@ -55,10 +63,18 @@ async function handleSync(deviceCode, payload){
 
     for (const item of payload){
         try {
+            if (device.deviceType === "PERPUSTAKAAN") {
+                await libraryService.recordLibraryScan({
+                    deviceId: device.id,
+                    rfidUid: item.value,
+                    scannedAt: item.scannedAt,
+                });
+                continue;
+            }
             await attendanceService.recordScan({
                 method: item.type,
                 value: item.value,
-                deviceId,
+                deviceId: device.id,
                 scannedAt: item.scannedAt,
             });
         } catch(err){

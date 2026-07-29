@@ -1,4 +1,4 @@
-enum UserRole { admin, guru, orangTua }
+enum UserRole { admin, guru, pustakawan, orangTua }
 
 class UserEntity {
   const UserEntity({required this.userId, required this.role});
@@ -8,6 +8,7 @@ class UserEntity {
 
   bool get isAdmin => role == UserRole.admin;
   bool get isGuru => role == UserRole.guru;
+  bool get isPustakawan => role == UserRole.pustakawan;
 
   static UserRole roleFromString(String raw){
     switch(raw) {
@@ -15,6 +16,8 @@ class UserEntity {
         return UserRole.admin;
       case 'guru':
         return UserRole.guru;
+      case 'pustakawan':
+        return UserRole.pustakawan;
       case 'orang_tua':
         return UserRole.orangTua;
       default:

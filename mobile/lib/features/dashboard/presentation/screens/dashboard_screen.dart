@@ -87,6 +87,34 @@ class DashboardScreen extends ConsumerWidget {
                   context.push('/devices');
                 },
               ),
+            if ((ref.watch(authNotifierProvider).valueOrNull?.isAdmin ?? false) ||
+                (ref.watch(authNotifierProvider).valueOrNull?.isPustakawan ?? false)) ...[
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.menu_book_outlined),
+                title: const Text('Katalog Buku'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  context.push('/books');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.add_box_outlined),
+                title: const Text('Peminjaman Buku'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  context.push('/library/borrow');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.assignment_return_outlined),
+                title: const Text('Pengembalian / Perpanjangan'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  context.push('/library/return');
+                },
+              ),
+            ],
           ],
         ),
       ),

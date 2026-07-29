@@ -10,6 +10,9 @@ import '../../features/classes/presentation/screens/clasess_list_screen.dart';
 import '../../features/attendance/presentation/screens/attendance_list_screen.dart';
 import '../../features/devices/presentation/screens/devices_list_screen.dart';
 import '../../features/users/presentation/screens/users_list_screen.dart';
+import '../../features/library/presentation/screens/library_borrow_screen.dart';
+import '../../features/library/presentation/screens/library_return_screen.dart';
+import '../../features/library/presentation/screens/books_list_screen.dart';
 import '../presentation/splash_screen.dart';
 
 class _GoRouterRefreshNotifier extends ChangeNotifier {
@@ -51,6 +54,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/users', builder: (context, state) => const UsersListScreen()),
       GoRoute(path: '/devices', builder: (context, state) => const DevicesListScreen(),
       ),
+      GoRoute(path: '/library/borrow', builder: (context, state) => const LibraryBorrowScreen()),
+      GoRoute(path: '/library/return', builder: (context, state) => const LibraryReturnScreen()),
+      GoRoute(path: '/books', builder: (context, state) => const BooksListScreen()),
     ],
   );
 });

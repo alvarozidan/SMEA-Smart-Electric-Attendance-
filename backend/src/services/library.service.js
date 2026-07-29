@@ -4,6 +4,11 @@ const LOAN_PERIOD_DAYS = 7;
 const MAX_UMUM_BOOKS = 2;
 const MAX_EXTENSIONS = 1;
 
+/**
+ * Dipanggil dari mqtt/subcriber.js saat device bertipe PERPUSTAKAAN menerima tap RFID.
+ * Pola sama persis dengan getLastUnknownScan di devices.service.js — simpan ke logs,
+ * bukan cache in-memory, supaya konsisten dengan arsitektur existing.
+ */
 async function recordLibraryScan({ deviceId, rfidUid, scannedAt }) {
   return prisma.log.create({
     data: {
@@ -16,6 +21,11 @@ async function recordLibraryScan({ deviceId, rfidUid, scannedAt }) {
   });
 }
 
+/**
+ * Dipoll oleh Flutter (Timer.periodic) sampai dapat UID baru.
+ * Tidak difilter "since" di backend — sama seperti getLastUnknownScan,
+ * staleness dicek di client pakai scannedAt (lihat rfid_bind_screen.dart).
+ */
 async function getLastLibraryScan(deviceId) {
   const log = await prisma.log.findFirst({
     where: { deviceId, eventType: "library_scan" },
@@ -30,6 +40,10 @@ async function getLastLibraryScan(deviceId) {
   };
 }
 
+/**
+ * FR-04, Rule #11: validasi kuota. Batch (>1 barcode) diproses atomik —
+ * kalau melanggar kuota, seluruh batch ditolak, tidak ada partial-save.
+ */
 async function borrowLoan({ rfidUid, bookBarcodes, actorUserId }) {
   if (!Array.isArray(bookBarcodes) || bookBarcodes.length === 0) {
     throw { status: 400, message: "bookBarcodes wajib diisi (minimal 1)" };
@@ -54,6 +68,8 @@ async function borrowLoan({ rfidUid, bookBarcodes, actorUserId }) {
       throw { status: 409, message: `Buku sedang dipinjam: ${unavailable.map((b) => b.barcode).join(", ")}` };
     }
 
+    // Rule #11: hitung via relasi studentId, bukan rfidUid saja — supaya tetap benar
+    // kalau kartu siswa pernah diganti (rule #1) di tengah periode peminjaman.
     const activeUmumCount = await tx.loan.count({
       where: {
         status: "DIPINJAM",
@@ -95,6 +111,10 @@ async function borrowLoan({ rfidUid, bookBarcodes, actorUserId }) {
     return createdLoans;
   });
 }
+
+/**
+ * FR-06, Rule #12: quick return via scan barcode, tanpa cari ID transaksi manual.
+ */
 async function returnLoan({ bookBarcode, actorUserId }) {
   return prisma.$transaction(async (tx) => {
     const book = await tx.book.findUnique({ where: { barcode: bookBarcode } });
@@ -126,6 +146,10 @@ async function returnLoan({ bookBarcode, actorUserId }) {
   });
 }
 
+/**
+ * Perpanjangan masa pinjam: maksimal 1x, TIDAK berlaku untuk buku kategori PELAJARAN.
+ * Dicari via bookBarcode (quick-flow), konsisten dengan returnLoan.
+ */
 async function extendLoan({ bookBarcode, actorUserId }) {
   return prisma.$transaction(async (tx) => {
     const book = await tx.book.findUnique({ where: { barcode: bookBarcode } });
@@ -191,4 +215,11 @@ async function listActiveLoansWithOverdue() {
   `;
 }
 
-module.exports = { recordLibraryScan, getLastLibraryScan, borrowLoan, returnLoan, extendLoan, listActiveLoansWithOverdue };
+module.exports = {
+  recordLibraryScan,
+  getLastLibraryScan,
+  borrowLoan,
+  returnLoan,
+  extendLoan,
+  listActiveLoansWithOverdue,
+};

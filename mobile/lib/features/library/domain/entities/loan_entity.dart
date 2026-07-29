@@ -30,7 +30,6 @@ class LoanEntity {
   final int overdueDaysLive;
 
   bool get isOverdue => overdueDaysLive > 0;
-
   bool get canExtend => bookCategory == BookCategory.umum && extensionCount < 1 && !isOverdue;
 }
 

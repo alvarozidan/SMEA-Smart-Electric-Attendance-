@@ -46,4 +46,17 @@ async function listLoans(req, res, next) {
         next(err);
     }
 }
-module.exports = { lastScan, borrow, returnBook, listLoans };
+
+async function extend(req, res, next) {
+    try {
+        const { bookBarcodes } = req.body;
+        if (!bookBarcodes) {
+            return res.status(400).json({ message: "bookBarcodes wajib diisi" });
+        }
+        const loan = await libraryService.extendLoan({ bookBarcode, actorUserId: req.user.id });
+        res.status(200).json(loan);
+    } catch (err) {
+        next(err);
+    }
+}
+module.exports = { lastScan, borrow, returnBook, listLoans, extend };

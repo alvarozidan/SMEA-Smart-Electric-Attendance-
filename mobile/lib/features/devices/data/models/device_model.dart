@@ -15,6 +15,7 @@ class DeviceModel {
       deviceCode: deviceCode, 
       location: json['location'] as String?, 
       status: statusRaw == 'online' ? DeviceStatus.online : DeviceStatus.offline, 
+      deviceType: json['deviceType'] == 'PERPUSTAKAAN' ? DeviceType.perpustakaan : DeviceType.absensi,
       registrationMode: json['registrationMode'] as bool? ?? false, 
       lastSeenAt: json['lastSeenAt'] != null ? DateTime.parse(json['lastSeenAt'] as String).toLocal() : null, 
       firmwareVersion: json['firmwareVersion'] as String?
@@ -25,4 +26,3 @@ class DeviceModel {
     return jsonList.map((e) => DeviceModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 }
-

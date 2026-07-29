@@ -40,6 +40,18 @@ class ApiConstants {
   static const String dashboardSummary = '/dashboard/summary';
   static const String dashboardTrend = '/dashboard/trend';
 
+
+  //Books
+  static const String books = '/books';
+  static String bookById(int id) => '/books/$id';
+
+  //Library
+  static String libraryLastScan(int deviceId) => '/library/devices/$deviceId/last-scan';
+  static const String libraryBorrow = '/library/borrow';
+  static const String libraryReturn = '/library/return';
+  static const String libraryExtend = '/library/extend';
+  static const String libraryLoans = '/library/loans';
+  
   static const Duration connectTimeout = Duration(seconds: 10);
   static const Duration receiveTimeout = Duration(seconds: 10);
 }

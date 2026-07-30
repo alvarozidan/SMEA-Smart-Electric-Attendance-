@@ -1,4 +1,5 @@
 const bookService = require('../services/book.service');
+const labelService = require('../services/label.service');
 
 async function getAll(req,res, next) {
     try {
@@ -57,4 +58,19 @@ async function remove(req, res, next) {
     }
 }
 
-module.exports = { getAll, getById, create, update, remove };
+async function getBookLabel(req, res, next) {
+    try {
+        const { barcode } = req.params;
+        const pdfBuffer = await labelService.generateBookLabel(barcode);
+
+        res.set({
+            'Content-Type' :'application/pdf',
+            'Content-Disposition' : `inline; filename="label-${barcode}.pdf"`,
+        });
+        res.send(pdfBuffer);
+    } catch (err) {
+        next(err);
+    }
+}
+
+module.exports = { getAll, getById, create, update, remove, getBookLabel };

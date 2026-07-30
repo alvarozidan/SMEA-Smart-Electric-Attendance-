@@ -88,4 +88,9 @@ class LibraryRepositoryImpl implements LibraryRepository {
     final jsonList = await _remote.getActiveLoans();
     return LoanModel.fromJoinedJsonList(jsonList);
   }
+
+  @override
+  Future<List<int>> getBookLabelPdf(String barcode) {
+    return _remote.getBookLabelPdf(barcode);
+  }
 }

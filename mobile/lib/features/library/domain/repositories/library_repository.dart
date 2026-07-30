@@ -25,4 +25,8 @@ abstract class LibraryRepository {
   Future<LoanActionResult> returnBook(String bookBarcode);
   Future<LoanActionResult> extendLoan(String bookBarcode);
   Future<List<LoanEntity>> getActiveLoans();
+  
+  Future<List<int>> getBookLabelPdf(String barcode);
 }
+
+

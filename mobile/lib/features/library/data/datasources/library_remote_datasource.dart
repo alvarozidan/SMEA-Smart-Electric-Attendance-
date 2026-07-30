@@ -59,4 +59,19 @@ class LibraryRemoteDatasource {
     final response = await _dio.get(ApiConstants.libraryLoans);
     return response.data as List<dynamic>;
   }
+  Future<List<int>> getBookLabelPdf(String barcode);
+
+  @override
+  Future<List<int>> getBookLabelPdf(String barcode) async {
+    final response = await dio.get<List<int>>(
+      '/books/$barcode/label',
+      options: Options(responseType: ResponseType.bytes),
+    );
+    if (response.statusCode != 200 || response.data == null) {
+      throw Exception('Gagal mengambil label buku');
+    }
+    return response.data!;
+}
+
+
 }

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/error/app_exception.dart';
+import '../widgets/barcode_scanner_sheet.dart';
 import '../../domain/entities/book_entity.dart';
 import '../providers/library_provider.dart';
 
-/// null = mode tambah, terisi = mode edit.
 class BookFormScreen extends ConsumerStatefulWidget {
   const BookFormScreen({super.key, this.book});
 
@@ -46,6 +46,13 @@ class _BookFormScreenState extends ConsumerState<BookFormScreen> {
       NetworkException() => 'Tidak bisa terhubung ke server',
       _ => 'Gagal menyimpan data buku',
     };
+  }
+
+  Future<void> _scanBarcode() async {
+    final result = await showBarcodeScanner(context);
+    if (result != null && mounted) {
+      setState(() => _barcodeController.text = result);
+    }
   }
 
   Future<void> _submit() async {
@@ -105,6 +112,13 @@ class _BookFormScreenState extends ConsumerState<BookFormScreen> {
                   labelText: 'Barcode',
                   border: const OutlineInputBorder(),
                   helperText: widget.isEditMode ? 'Barcode tidak bisa diubah' : null,
+                  suffixIcon: widget.isEditMode
+                      ? null
+                      : IconButton(
+                          icon: const Icon(Icons.qr_code_scanner),
+                          tooltip: 'Scan barcode buku',
+                          onPressed: _scanBarcode,
+                        ),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) return 'Barcode wajib diisi';

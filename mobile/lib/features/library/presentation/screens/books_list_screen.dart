@@ -1,5 +1,8 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:printing/printing.dart';
 
 import '../../domain/entities/book_entity.dart';
 import '../providers/library_provider.dart';
@@ -47,6 +50,20 @@ class _BooksListScreenState extends ConsumerState<BooksListScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(success ? 'Buku berhasil dihapus' : 'Gagal menghapus buku')),
     );
+  }
+
+  Future<void> _printLabel(BookEntity book) async {
+    final bytes = await ref.read(bookLabelControllerProvider.notifier).fetchLabelPdf(book.barcode);
+    if (!mounted) return;
+
+    if (bytes == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gagal membuat label. Coba lagi.')),
+      );
+      return;
+    }
+
+    await Printing.layoutPdf(onLayout: (_) async => Uint8List.fromList(bytes));
   }
 
   @override
@@ -111,9 +128,12 @@ class _BooksListScreenState extends ConsumerState<BooksListScreen> {
                       );
                     } else if (value == 'delete') {
                       _confirmDelete(book);
+                    } else if (value == 'label') {
+                      _printLabel(book);
                     }
                   },
                   itemBuilder: (context) => const [
+                    PopupMenuItem(value: 'label', child: Text('Cetak Label')),
                     PopupMenuItem(value: 'edit', child: Text('Edit')),
                     PopupMenuItem(value: 'delete', child: Text('Hapus')),
                   ],

@@ -114,3 +114,24 @@ class BookController extends AutoDisposeAsyncNotifier<void> {
     return !result.hasError;
   }
 }
+
+final bookLabelControllerProvider =
+    AsyncNotifierProvider.autoDispose<BookLabelController, void>(
+  BookLabelController.new,
+);
+
+class BookLabelController extends AutoDisposeAsyncNotifier<void> {
+  @override
+  Future<void> build() async {}
+
+  /// Ambil bytes PDF label untuk satu buku. Return null kalau gagal
+  /// (state error sudah ke-set, tinggal ditangkap di listener UI).
+  Future<List<int>?> fetchLabelPdf(String barcode) async {
+    state = const AsyncLoading();
+    final result = await AsyncValue.guard(() {
+      return ref.read(libraryRepositoryProvider).getBookLabelPdf(barcode);
+    });
+    state = result.hasError ? AsyncError(result.error!, result.stackTrace!) : const AsyncData(null);
+    return result.valueOrNull;
+  }
+}

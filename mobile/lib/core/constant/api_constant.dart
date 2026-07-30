@@ -44,6 +44,7 @@ class ApiConstants {
   //Books
   static const String books = '/books';
   static String bookById(int id) => '/books/$id';
+  static String bookLabel(String barcode) => '/books/$barcode/label';
 
   //Library
   static String libraryLastScan(int deviceId) => '/library/devices/$deviceId/last-scan';

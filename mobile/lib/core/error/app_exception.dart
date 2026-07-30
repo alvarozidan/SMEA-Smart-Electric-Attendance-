@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 sealed class AppException implements Exception {
   AppException(this.message);
   final String message;
@@ -37,4 +39,20 @@ class NetworkException extends AppException {
 
 class ServerException extends AppException {
   ServerException([super.message = 'Terjadi kesalahan pada server']);
+}
+
+/// Dio selalu men-throw objek [DioException] ke pemanggil, bukan AppException
+/// hasil mapping interceptor (lihat DioClient._translate) — hasil mapping itu
+/// cuma "nempel" di field [DioException.error].
+///
+/// Panggil ini di awal tiap `_mapErrorMessage` di layar manapun, supaya
+/// switch-case terhadap tipe AppException (BadRequestException,
+/// ConflictException, dst) benar-benar bisa match, bukan selalu jatuh ke
+/// default karena yang dibandingkan tipe DioException.
+AppException resolveAppException(Object error) {
+  if (error is AppException) return error;
+  if (error is DioException && error.error is AppException) {
+    return error.error as AppException;
+  }
+  return ServerException();
 }

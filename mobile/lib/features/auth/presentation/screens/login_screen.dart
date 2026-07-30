@@ -34,7 +34,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   String _mapErrorMessage(Object error) {
-    return switch (error) {
+    return switch (resolveAppException(error)) {
       BadRequestException(:final message) => message,
       UnauthorizedException() => 'Email atau password salah',
       NetworkException() => 'Tidak bisa terhubung ke server. Cek koneksi Anda',

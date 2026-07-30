@@ -95,11 +95,12 @@ class _LibraryBorrowScreenState extends ConsumerState<LibraryBorrowScreen> {
   }
 
   String _mapErrorMessage(Object error) {
-    return switch (error) {
+    return switch (resolveAppException(error)) {
       BadRequestException(:final message) => message,
       ConflictException(:final message) => message,
       NotFoundException(:final message) => message,
       ForbiddenException() => 'Anda tidak punya akses untuk aksi ini',
+      UnauthorizedException() => 'Sesi berakhir, silakan login ulang',
       NetworkException() => 'Tidak bisa terhubung ke server',
       _ => 'Peminjaman gagal',
     };

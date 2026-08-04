@@ -25,4 +25,13 @@ class StudentsRemoteDatasource {
   Future<void> delete(int id) async {
     await _dio.delete(ApiConstants.studentById(id));
   }
+
+  Future<Map<String, dynamic>> importStudents(String filePath) async {
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(filePath, filename: filePath.split('/').last),
+    });
+
+    final response = await _dio.post(ApiConstants.studentsImport, data: formData);
+    return response.data as Map<String, dynamic>;
+  }
 }

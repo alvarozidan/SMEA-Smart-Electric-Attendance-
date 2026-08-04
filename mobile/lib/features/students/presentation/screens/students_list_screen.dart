@@ -6,6 +6,7 @@ import '../providers/students_provider.dart';
 import 'student_form_screen.dart';
 import '../../../rfid/presentation/screens/rfid_bind_screen.dart';
 import '../../../rfid/presentation/providers/rfid_provider.dart';
+import 'student_import_screen.dart';
 
 class StudentsListScreen extends ConsumerStatefulWidget {
   const StudentsListScreen({super.key});
@@ -162,6 +163,15 @@ class _StudentsListScreenState extends ConsumerState<StudentsListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Siswa'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.upload_file),
+            tooltip: 'Import dari Excel',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const StudentImportScreen()),
+            ),
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(56),
           child: Padding(

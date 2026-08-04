@@ -5,6 +5,7 @@ import '../../data/datasources/students_remote_datasource.dart';
 import '../../data/repositories/student_repository_impl.dart';
 import '../../domain/entities/student_entity.dart';
 import '../../domain/repositories/student_repository.dart';              
+import '../../domain/entities/student_import_result_entity.dart';
 
 final studentsRemoteDatasourceProvider = Provider<StudentsRemoteDatasource>((ref) {
   return StudentsRemoteDatasource(ref.watch(dioProvider));
@@ -20,6 +21,12 @@ final studentsListProvider = FutureProvider.autoDispose<List<StudentEntity>>((re
 
 final studentFormControllerProvider =
     AsyncNotifierProvider.autoDispose<StudentFormController, void>(StudentFormController.new);
+
+final studentImportControllerProvider =
+    AsyncNotifierProvider.autoDispose<StudentImportController, StudentImportResultEntity?>(
+  StudentImportController.new,
+);
+
 
 class StudentFormController extends AutoDisposeAsyncNotifier<void> {
   @override
@@ -70,5 +77,19 @@ class StudentFormController extends AutoDisposeAsyncNotifier<void> {
     state = result.hasError ? AsyncError(result.error!, result.stackTrace!) : const AsyncData(null);
     if (!result.hasError) ref.invalidate(studentsListProvider);
     return !result.hasError;
+  }
+}
+
+class StudentImportController extends AutoDisposeAsyncNotifier<StudentImportResultEntity?> {
+  @override
+  Future<StudentImportResultEntity?> build() async => null;
+
+  Future<void> importFile(String filePath) async {
+    state = const AsyncLoading();
+    final result = await AsyncValue.guard(
+      () => ref.read(studentsRepositoryProvider).importStudents(filePath),
+    );
+    state = result;
+    if (!result.hasError) ref.invalidate(studentsListProvider);
   }
 }

@@ -1,7 +1,9 @@
 import '../../domain/entities/student_entity.dart';
+import '../../domain/entities/student_import_result_entity.dart';
 import '../../domain/repositories/student_repository.dart';
 import '../datasources/students_remote_datasource.dart';
 import '../models/student_model.dart';
+import '../models/student_import_result_model.dart';
 
 class StudentRepositoryImpl implements StudentRepository {
   StudentRepositoryImpl(this._remote);
@@ -46,4 +48,10 @@ class StudentRepositoryImpl implements StudentRepository {
 
   @override
   Future<void> delete(int id) => _remote.delete(id);
+
+  @override
+  Future<StudentImportResultEntity> importStudents(String filePath) async {
+  final json = await _remote.importStudents(filePath);
+  return StudentImportResultModel.fromJson(json);
+  }
 }

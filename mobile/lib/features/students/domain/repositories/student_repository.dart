@@ -1,4 +1,5 @@
 import '../entities/student_entity.dart';
+import '../entities/student_import_result_entity.dart';
 
 abstract class StudentRepository {
   Future<List<StudentEntity>> getAll();
@@ -17,4 +18,6 @@ abstract class StudentRepository {
   });
 
   Future<void> delete(int id);
+
+  Future<StudentImportResultEntity> importStudents(String filePath);
 }

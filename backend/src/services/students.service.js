@@ -1,5 +1,6 @@
 const prisma = require('../config/prisma');
 const { Prisma } = require('../../generated/prisma');
+const ExcelJS = require('exceljs');
 
 async function getAll(user){
     const where = { isDeleted: false };
@@ -124,4 +125,93 @@ async function softDelete(id,user){
     });
 }
 
-module.exports = { getAll, getById, create, update, softDelete };
+function normalizeClassName(value) {
+    return String(value ?? '').trim().toUpperCase();
+}
+
+async function bulkImport(fileBuffer, user) {
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(filebuffer);
+
+    const sheet = workbook.worksheets[0];
+    if (!sheet) {
+        throw { status: 400, message: "File excel tidak punya sheet" };
+    }
+
+    const classes = await prisma.class.findMany();
+    const classMap = new Map(classes.map((c) => [normalizeClassName(c.name), c.id]));
+
+    const existingStudents = await prisma.student.findMany({ select: { nis: true } });
+    const existingNisSet = new Set(existingStudents.map((s) => s.nis));
+
+    const validRows = [];
+    const failed = [];
+    const seenNisInFile = new Set();
+
+    for (let rowNumber = 2; rowNumber <= sheet.rowCount; rowNumber++) {
+        const row = sheet.getRow(rowNumber);
+        const nis = String(row.getCell(1).value ?? '').trim();
+        const name = String(row.getCell(2).value ?? '').trim();
+        const className = String(row.getCell(3).value ?? '').trim();
+
+        if (!nis && !name && !className) continue;
+
+        if (!nis || !name) {
+            failed.push({ row: rowNumber, nis: nis || null, name: name || null, reason: "NIS dan nama wajib terisi" });
+            continue;
+        }
+
+        if (seenNisInFile.has(nis)) {
+            failed.push({ row: rowNumber, nis, name, reason: "Terdapat NIS yang sama" });
+            continue;
+        }
+
+        if (existingNisSet.has(nis)) {
+            failed.push({ row: rowNumber, nis, name, reason: "NIS sudah terdaftar" });
+            continue;
+        }
+
+        let classId = null;
+        if (className) {
+            classId = classMap.get(normalizeClassName(className)) ?? null;
+            if (classId === null) {
+                failed.push({ row: rowNumber, nis, name, reason: `Kelas '${className}' tidak ditemukan` });
+                continue;
+            }
+        }
+
+        seenNisInFile.add(nis);
+        validRows.push({ nis, name, classId });
+    }
+
+    let successCount = 0;
+    if (validRows.length > 0) {
+        const result = await prisma.student.createMany({
+            data: validRows,
+            skipDuplicates: true,
+        });
+        successCount = result.count;
+    }
+    await prisma.log.create({
+        data: {
+            eventType: "bulk_import_students",
+            payload: {
+                actorUserId: user.id,
+                totalRows: validRows.length + failed.length,
+                successCount,
+                failedCount: failed.length,
+            },
+        },
+    });
+
+    return {
+        totalRows: validRows.length + failed.length,
+        successCount,
+        failedCount: failed.length,
+        failed,
+    };
+}
+
+module.exports = { getAll, getById, create, update, softDelete, bulkImport };
+
+

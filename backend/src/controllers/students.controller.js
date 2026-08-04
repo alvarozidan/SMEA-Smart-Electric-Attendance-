@@ -59,4 +59,16 @@ async function remove(req, res, next){
     }
 }
 
-module.exports = { getAll, getById, create, update, remove };
+async function importStudents(req, res, next) {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: "File Excel (.xlsx) wajib diupload" });
+        }
+        const result = await studentsService.bulkImport(req.file.buffer, req.user);
+        res.status(200).json(result);
+    } catch (err) {
+        next(err);
+    }
+}
+
+module.exports = { getAll, getById, create, update, remove, importStudents };

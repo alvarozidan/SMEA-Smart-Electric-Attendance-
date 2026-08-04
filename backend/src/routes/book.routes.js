@@ -3,13 +3,12 @@ const router = express.Router();
 const authenticate = require('../middlewares/auth.middleware');
 const { requireRole } = require('../middlewares/rbac.middleware');
 const bookController = require('../controllers/book.controller');
-const { book } = require("../config/prisma");
 
 router.use(authenticate);
 
 router.get("/", bookController.getAll);
-router.get(":id", bookController.getById);
-router.get('/:barcode/label', authenticate, requireRole("admin", "pustakawan"), bookController.getBookLabel);
+router.get("/:id", bookController.getById);
+router.get('/:barcode/label', requireRole("admin", "pustakawan"), bookController.getBookLabel);
 router.post("/", requireRole("admin", "pustakawan"), bookController.create);
 router.put("/:id", requireRole("admin", "pustakawan"), bookController.update);
 router.delete("/:id", requireRole("admin", "pustakawan"), bookController.remove);

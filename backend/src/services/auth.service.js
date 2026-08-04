@@ -71,7 +71,15 @@ async function refresh(oldRefreshToken){
         };
     }
 
-    const payload = { userId: decoded.userId, role: decoded.role };
+    // Ambil role TERKINI dari DB, bukan dari payload JWT lama (`decoded.role`).
+    // Kalau role user diubah admin setelah token diterbitkan, access token baru
+    // harus reflect role terbaru, bukan role saat login dulu.
+    const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
+    if (!user || !user.isActive) {
+        throw { status: 401, message: "Akun tidak ditemukan atau telah dinonaktifkan" };
+    }
+
+    const payload = { userId: user.id, role: user.role };
     const newAccessToken = signAccessToken(payload);
 
     return{ accessToken: newAccessToken };

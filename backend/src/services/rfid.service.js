@@ -5,7 +5,7 @@ const { isOnline } = require('./devices.service');
 async function assertDeviceReady(deviceId){
     const device = await prisma.device.findUnique({ where: { id: deviceId } });
     if(!device){
-        throw{ status: 404, message: "Devvice tidak ditemukan" };
+        throw{ status: 404, message: "Device tidak ditemukan" };
     }
     if(!device.registrationMode){
         throw{ status: 403, message: "Mode registrasi belum diaktifkan" };
@@ -43,15 +43,22 @@ async function register(data, user){
     const existing = await prisma.studentCredential.findUnique({ where: { studentId } });
 
     if(type === "rfid" && existing?.rfidUid){
-        throw{ status: 409, message: "Siswa sudah puna RFID aktif" };
+        throw{ status: 409, message: "Siswa sudah punya RFID aktif" };
     }
     if(type === "fingerprint" && existing?.fingerprintIndex != null){
         throw{ status: 409, message: "Siswa sudah punya fingerprint aktif" };
     }
     
-    const dataToWrite = type === "rfid"
-        ? { rfidUid: value }
-        : { fingerprintIndex: parseInt(value, 10) };
+    let dataToWrite;
+    if (type === "rfid") {
+        dataToWrite = { rfidUid: value };
+    } else {
+        const fingerprintIndex = parseInt(value, 10);
+        if (isNaN(fingerprintIndex)) {
+            throw { status: 400, message: "value fingerprint harus berupa angka" };
+        }
+        dataToWrite = { fingerprintIndex };
+    }
 
         try {
             return await prisma.$transaction(async (tx) => {

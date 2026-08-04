@@ -1,15 +1,31 @@
 const prisma = require('../config/prisma');
-const { toDateOnlyWIB } = require("../utils/date.util");
+const { Prisma } = require('../../generated/prisma');
+const { toDateOnlyWIB, WIB_OFFSET_MS } = require("../utils/date.util");
 
 const DUPLICATE_WINDOWS_MS = 5 * 60 * 1000;
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
-function getTimeMs(date){
-    return date.getHours() * 3600000 + date.getMinutes() * 60000 + date.getSeconds() * 1000;
+// scanTime adalah instant UTC asli (mis. jam sebenarnya siswa nge-tap) —
+// harus digeser +7 jam dulu supaya "jam dinding WIB"-nya ketemu, baru dibaca
+// pakai getter UTC (bukan getHours() lokal, karena itu tergantung timezone
+// proses Node yang jalanin server dan nggak bisa diandalkan).
+function getWibTimeMs(date){
+    const shifted = new Date(date.getTime() + WIB_OFFSET_MS);
+    return shifted.getUTCHours() * 3600000 + shifted.getUTCMinutes() * 60000 + shifted.getUTCSeconds() * 1000;
+}
+
+// checkInDeadline itu kolom @db.Time() (Postgres TIME, tanpa timezone) — nilai
+// digitnya ITU SENDIRI sudah representasi jam dinding WIB apa adanya (misal admin
+// isi "07:15" ya artinya 07:15 WIB). Jadi dibaca pakai getter UTC juga (bukan
+// getHours() lokal), TANPA digeser lagi — supaya konsisten sama getWibTimeMs di atas
+// dan nggak ikut kebawa timezone server.
+function getDeadlineTimeMs(classRecord){
+    const d = classRecord.checkInDeadline;
+    return d.getUTCHours() * 3600000 + d.getUTCMinutes() * 60000 + d.getUTCSeconds() * 1000;
 }
 
 function determineStatus(scanTime, classRecord){
-    return getTimeMs(scanTime) <= getTimeMs(classRecord.checkInDeadline) ? "hadir" : "terlambat";
+    return getWibTimeMs(scanTime) <= getDeadlineTimeMs(classRecord) ? "hadir" : "terlambat";
 }
 
 async function recordScan({ method, value, deviceId, scannedAt }){
@@ -23,8 +39,12 @@ async function recordScan({ method, value, deviceId, scannedAt }){
             include: { student: { include: { class: true } } },
         });
     } else if(method === "fingerprint"){
+        const fingerprintIndex = parseInt(value, 10);
+        if(isNaN(fingerprintIndex)){
+            throw { status: 400, message: "value fingerprint harus berupa angka" };
+        }
         credential = await prisma.studentCredential.findUnique({
-            where: { fingerprintIndex: parseInt(value, 10) },
+            where: { fingerprintIndex },
             include: { student: { include: { class: true } } },
         });
     }else {
@@ -66,21 +86,35 @@ async function recordScan({ method, value, deviceId, scannedAt }){
 
     const status = determineStatus(scanTime, student.class);
 
-    return prisma.$transaction(async (tx) => {
-        const created = await tx.attendance.create({
-            data: { studentId: student.id, classId: student.classId, date, checkInTime: scanTime, status, method },
+    try {
+        return await prisma.$transaction(async (tx) => {
+            const created = await tx.attendance.create({
+                data: { studentId: student.id, classId: student.classId, date, checkInTime: scanTime, status, method },
+            });
+            await tx.log.create({
+                data: {
+                    eventType: "attendance_recorded",
+                    method,
+                    deviceId,
+                    studentId: student.id,
+                    payload: { attendanceId: created.id, status, source: scannedAt ? "offline_sync" : "live" },
+                },
+            });
+            return created;
         });
-        await tx.log.create({
-            data: {
-                eventType: "attendance_recorded",
-                method,
-                deviceId,
-                studentId: student.id,
-                payload: { attendanceId: created.id, status, source: scannedAt ? "offline_sync" : "live" },
-            },
-        });
-        return created;
-    });
+    } catch (err) {
+        // Race condition: dua scan nyaris bersamaan buat siswa+tanggal yang sama
+        // (mis. device retry MQTT) bisa lolos pengecekan `existing` di atas
+        // sebelum salah satunya sempat ke-create. UNIQUE(student_id, date) di DB
+        // yang jadi penjaga terakhir — di sini tinggal ambil record yang menang duluan.
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+            const winner = await prisma.attendance.findUnique({
+                where: { studentId_date: { studentId: student.id, date } },
+            });
+            if (winner) return winner;
+        }
+        throw err;
+    }
 }
 
 async function getAll(query, user){

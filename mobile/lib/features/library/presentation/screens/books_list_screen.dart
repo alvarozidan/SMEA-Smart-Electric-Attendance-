@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:printing/printing.dart';
 
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/book_entity.dart';
 import '../providers/library_provider.dart';
 import 'book_form_screen.dart';
+import 'library_borrow_screen.dart';
+import 'library_return_screen.dart';
 
 class BooksListScreen extends ConsumerStatefulWidget {
   const BooksListScreen({super.key});
@@ -73,6 +76,12 @@ class _BooksListScreenState extends ConsumerState<BooksListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Katalog Buku'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () => ref.read(authNotifierProvider.notifier).logout(), 
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(56),
           child: Padding(
@@ -88,6 +97,39 @@ class _BooksListScreenState extends ConsumerState<BooksListScreen> {
               onChanged: (value) => setState(() => _query = value),
             ),
           ),
+        ),
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(child: Text('Perpustakaan')),
+            ListTile(
+              leading: const Icon(Icons.menu_book_outlined),
+              title: const Text("Katalog Buku"),
+              onTap: () => Navigator.of(context).pop(),
+            ),
+            ListTile(
+              leading: const Icon(Icons.add_box_outlined),
+              title: const Text("Peminjaman Buku"),
+              onTap: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const LibraryBorrowScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.assignment_return_outlined),
+              title: const Text("Pengembalian / Perpanjangan"),
+              onTap: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const LibraryReturnScreen()),
+                );
+              },
+            ),
+          ],
         ),
       ),
       body: booksAsync.when(

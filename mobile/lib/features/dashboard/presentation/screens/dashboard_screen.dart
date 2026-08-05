@@ -87,8 +87,7 @@ class DashboardScreen extends ConsumerWidget {
                   context.push('/devices');
                 },
               ),
-            if ((ref.watch(authNotifierProvider).valueOrNull?.isAdmin ?? false) ||
-                (ref.watch(authNotifierProvider).valueOrNull?.isPustakawan ?? false)) ...[
+            if (ref.watch(authNotifierProvider).valueOrNull?.isPustakawan ?? false) ...[
               const Divider(),
               ListTile(
                 leading: const Icon(Icons.menu_book_outlined),

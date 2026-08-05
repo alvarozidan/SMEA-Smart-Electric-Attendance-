@@ -131,7 +131,7 @@ function normalizeClassName(value) {
 
 async function bulkImport(fileBuffer, user) {
     const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(filebuffer);
+    await workbook.xlsx.load(fileBuffer);
 
     const sheet = workbook.worksheets[0];
     if (!sheet) {

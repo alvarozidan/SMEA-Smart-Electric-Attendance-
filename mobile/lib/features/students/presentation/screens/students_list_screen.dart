@@ -6,6 +6,7 @@ import '../providers/students_provider.dart';
 import 'student_form_screen.dart';
 import '../../../rfid/presentation/screens/rfid_bind_screen.dart';
 import '../../../rfid/presentation/providers/rfid_provider.dart';
+import '../../../classes/presentation/providers/class_provider.dart';
 import 'student_import_screen.dart';
 
 class StudentsListScreen extends ConsumerStatefulWidget {
@@ -17,12 +18,19 @@ class StudentsListScreen extends ConsumerStatefulWidget {
 
 class _StudentsListScreenState extends ConsumerState<StudentsListScreen> {
   String _query = '';
+  int? _selectedClassId;
 
   List<StudentEntity> _filter(List<StudentEntity> students) {
-    if (_query.trim().isEmpty) return students;
-    final q = _query.toLowerCase();
-    return students.where((s) {
-      return s.name.toLowerCase().contains(q) || s.nis.toLowerCase().contains(q);
+    final query = _query.trim().toLowerCase();
+
+    return students.where((student) {
+      final matchesQuery = query.isEmpty ||
+          student.name.toLowerCase().contains(query) ||
+          student.nis.toLowerCase().contains(query);
+
+      final matchesClass = _selectedClassId == null || student.classId == _selectedClassId;
+
+      return matchesQuery && matchesClass;
     }).toList();
   }
 
@@ -159,6 +167,9 @@ class _StudentsListScreenState extends ConsumerState<StudentsListScreen> {
   @override
   Widget build(BuildContext context) {
     final studentsAsync = ref.watch(studentsListProvider);
+    final classesAsync = ref.watch(classesListProvider);
+
+    final filteredStudentCount = studentsAsync.valueOrNull == null ? null : _filter(studentsAsync.valueOrNull!).length;
 
     return Scaffold(
       appBar: AppBar(
@@ -173,18 +184,60 @@ class _StudentsListScreenState extends ConsumerState<StudentsListScreen> {
           ),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(56),
+          preferredSize: const Size.fromHeight(120),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: TextField(
-              decoration: const InputDecoration(
-                hintText: 'Cari nama atau NIS...',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
-                isDense: true,
-                filled: true,
-              ),
-              onChanged: (value) => setState(() => _query = value),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 22),
+            child: Column(
+              children: [
+                TextField(
+                  decoration: const InputDecoration(
+                    hintText: "Cari nama atau NIS...",
+                    prefixIcon: Icon(Icons.search),
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                    filled: true,
+                  ),
+                  onChanged: (value) => setState(() => _query = value),
+                ),
+                const SizedBox(height: 8),
+                classesAsync.when(
+                  data: (classes) => DropdownButtonFormField<int?>(
+                    value: _selectedClassId,
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      labelText: "Filter kelas",
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                      filled: true,
+                    ),
+                    items: [
+                      const DropdownMenuItem<int?>(
+                        value: null,
+                        child: Text("Semua kelas"),
+                      ),
+                      ...classes.map(
+                        (item) => DropdownMenuItem<int?>(
+                          value: item.id,
+                          child: Text(item.name),
+                        ),
+                      ),
+                    ],
+                    onChanged: (value) =>
+                          setState(() => _selectedClassId = value),
+                  ),
+                  loading: () => const LinearProgressIndicator(),
+                  error: (_, _) => const SizedBox.shrink(),
+                ),
+                const SizedBox(height: 6),
+                if (filteredStudentCount != null)
+                Align (
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Jumlah siswa: $filteredStudentCount",
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+              ],
             ),
           ),
         ),

@@ -42,7 +42,7 @@ async function create({ barcode, title, category }) {
 async function update(id, { title, category }) {
     await getById(id);
 
-    if (category !== undefined && !["UMUM", '"PELAJARAN'].includes(category)) {
+    if (category !== undefined && !["UMUM", "PELAJARAN"].includes(category)) {
         throw { status: 400, message: "categroy harus UMUM atau PELAJARAN" };
     }
     return prisma.book.update({

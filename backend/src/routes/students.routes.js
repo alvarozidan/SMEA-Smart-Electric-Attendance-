@@ -6,7 +6,7 @@ const upload = require('../middlewares/upload.middleware');
 const studentsController = require('../controllers/students.controller');
 
 router.use(authenticate);
-router.use(requireRole(("admin", "guru")));
+router.use(requireRole("admin", "guru"));
 
 router.get("/", studentsController.getAll);
 router.get("/:id", studentsController.getById);

@@ -5,7 +5,7 @@ const { requireRole } = require('../middlewares/rbac.middleware');
 const dashboardController = require('../controllers/dashboard.controller');
 
 router.use(authenticate);
-router.use(requireRole(("admin", "guru")));
+router.use(requireRole("admin", "guru"));
 
 router.get("/summary", dashboardController.summary);
 router.get("/trend", dashboardController.trend);

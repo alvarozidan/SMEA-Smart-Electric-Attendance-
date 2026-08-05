@@ -5,6 +5,7 @@ const { requireRole } = require('../middlewares/rbac.middleware');
 const rfidController = require('../controllers/rfid.controller');
 
 router.use(authenticate);
+router.use(requireRole(("admin", "guru")));
 
 router.post("/register", rfidController.register);
 router.delete("/:uid", rfidController.unbind);

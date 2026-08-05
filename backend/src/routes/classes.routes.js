@@ -5,6 +5,7 @@ const { requireRole } = require("../middlewares/rbac.middleware");
 const classesController = require("../controllers/classes.controller");
 
 router.use(authenticate);
+router.use(requireRole(("admin", "guru")));
 
 router.get("/", classesController.getAll);
 router.post("/", requireRole("admin"), classesController.create);

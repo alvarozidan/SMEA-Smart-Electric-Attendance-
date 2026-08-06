@@ -13,6 +13,34 @@ async function login(req, res, next){
     }
 }
 
+async function loginStudent(req, res, next) {
+    try {
+        const { nis, password } = req.body;
+        if (!nis || !password) {
+            return res.status(400).json({ message: "NIS dan password harus diisi" });
+        }
+
+        const result = await authService.loginStudent(nis, password);
+        res.status(200).json(result);
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function changePassword(req, res, next){
+    try {
+        const { oldPassword, newPassword } = req.body;
+        if (!oldPassword || !newPassword){
+            return res.status(400).json({ message: "Password lama dan baru harus diisi"});
+        }
+
+        await authService.changePassword(req.user.id, oldPassword, newPassword);
+        res.status(200).json({ message: "Password berhasil diubah" });
+    } catch (err){
+        next(err);
+    }
+}
+
 async function refresh(req, res, next){
     try {
         const { refreshToken } = req.body;
@@ -41,4 +69,4 @@ async function logout(req, res, next){
     }
 }
 
-module.exports = { login, refresh, logout };
+module.exports = { login, loginStudent, changePassword, refresh, logout };

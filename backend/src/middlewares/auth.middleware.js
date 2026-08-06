@@ -11,7 +11,7 @@ function authenticate(req, res, next){
 
     try {
         const decoded = verifyAccessToken(token);
-        req.user = { id: decoded.userId, role: decoded.role };
+        req.user = { id: decoded.userId, role: decoded.role, studentId: decoded.studentId ?? null };
         next();
     } catch (err){
         return res.status(401).json({ message: "Token tidak valid atau expired" });

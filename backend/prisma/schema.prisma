@@ -15,6 +15,7 @@ enum UserRole {
   admin
   guru
   pustakawan
+  murid
 }
 
 enum AttendanceStatus {
@@ -62,16 +63,19 @@ enum LoanStatus {
 }
 
 model User {
-  id            Int       @id @default(autoincrement())
-  name          String    
-  email         String    @unique
-  passwordHash  String    @map("password_hash")
-  role          UserRole
-  isActive      Boolean   @default(true) @map("is_active")
-  createdAt     DateTime  @default(now()) @map("created_at")
+  id                  Int       @id @default(autoincrement())
+  name                String    
+  email               String?   @unique
+  passwordHash        String    @map("password_hash")
+  role                UserRole
+  isActive            Boolean   @default(true) @map("is_active")
+  mustChangePassword  Boolean   @default(false) @map("must_change_password")
+  studentId           Int?      @unique @map("student_id")
+  createdAt           DateTime  @default(now()) @map("created_at")
 
-  classes       Class[]       @relation("HomeroomTeacher")
-  refreshTokens RefreshToken[]
+  student             Student?  @relation(fields: [studentId], references: [id])
+  classes             Class[]   @relation("HomeroomTeacher")
+  refreshTokens       RefreshToken[]
 
   @@map("users")
 }
@@ -103,6 +107,7 @@ model Student {
   credential  StudentCredential?
   attendance  Attendance[]
   logs        Log[]
+  account     User?
 
   @@map("students")
 }
